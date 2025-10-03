@@ -23,7 +23,9 @@
             <td>{{ room.roomType }}</td>
             <td>{{ room.capacity }}</td>
             <td>{{ room.price }}</td>
-            
+            <td>
+                <span class="status-badge status-active">판매중</span>
+            </td>
             <td>
               <button class="btn-secondary btn-sm">수정</button>
               <button class="btn-danger btn-sm">삭제</button>
@@ -43,16 +45,13 @@ export default {
   name: 'OwnerRoom',
   data() {
     return {
-      // 👇 [추가] 실제 객실 목록을 담을 배열
       rooms: [],
     };
   },
   methods: {
-    // 👇 [수정] goToRegisterPag -> goToRegisterPage 오타 수정
     goToRegisterPage() {
       this.$router.push({ name: 'OwnerRoomRegister' });
     },
-    // 👇 [추가] 백엔드 API를 호출하여 객실 목록을 가져오는 메소드
     async fetchRooms() {
       try {
         const token = localStorage.getItem('token');
@@ -68,7 +67,7 @@ export default {
           }
         });
         
-        this.rooms = response.data; // API로부터 받은 데이터로 rooms 배열 업데이트
+        this.rooms = response.data;
 
       } catch (error) {
         console.error("객실 목록을 불러오는 데 실패했습니다:", error);
@@ -76,7 +75,6 @@ export default {
       }
     }
   },
-  // 👇 [추가] 컴포넌트가 생성될 때 자동으로 객실 목록을 불러오도록 설정
   mounted() {
     this.fetchRooms();
   }

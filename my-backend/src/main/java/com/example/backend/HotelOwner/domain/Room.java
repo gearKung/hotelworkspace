@@ -2,7 +2,6 @@ package com.example.backend.HotelOwner.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.ToString;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -29,12 +28,13 @@ public class Room {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    // ★ 오너에서 쓰던 타입도 유지
-    public enum RoomType {스위트룸,디럭스룸,스탠다드룸,싱글룸,트윈룸}
-
+    
     @Enumerated(EnumType.STRING)
     @Column(name = "room_type", nullable = false, length = 50)
     private RoomType roomType;
+
+    // ★ 오너에서 쓰던 타입도 유지
+    public enum RoomType {디럭스룸, 스위트룸, 스탠다드룸, 싱글룸, 트윈룸}
 
     @Column(name = "room_size", length = 50)
     private String roomSize;
