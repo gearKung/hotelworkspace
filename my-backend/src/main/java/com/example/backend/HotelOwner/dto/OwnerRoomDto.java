@@ -43,18 +43,16 @@ public class OwnerRoomDto {
         private String name;
         private String roomType;
         private String price; // 포맷팅된 가격 (예: "150,000원")
-        private String capacity; // 예: "2 / 4"
-        private boolean isActive; // 판매 상태
+        private String capacity; // 예: "2 / 4" 
 
         // Entity를 DTO로 변환하는 정적 메소드
         public static ListResponse fromEntity(Room room) {
             return ListResponse.builder()
                     .id(room.getId())
                     .name(room.getName())
-                    .roomType(room.getRoomType().name())
+                    .roomType(room.getRoomType() != null ? room.getRoomType().name() : "타입 없음")
                     .price(String.format("%,d원", room.getPrice()))
                     .capacity(room.getCapacityMin() + " / " + room.getCapacityMax())
-                    .isActive(true) // 'isActive' 필드가 엔티티에 없으므로 임시로 true 설정
                     .build();
         }
     }

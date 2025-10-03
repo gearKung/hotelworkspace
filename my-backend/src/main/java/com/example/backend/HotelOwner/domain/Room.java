@@ -36,7 +36,7 @@ public class Room {
     @Column(name = "room_type", nullable = false, length = 50)
     private RoomType roomType;
 
-    @Column(name = "room_size", nullable = false, length = 50)
+    @Column(name = "room_size", length = 50)
     private String roomSize;
 
     @Column(name = "capacity_min", nullable = false)

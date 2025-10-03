@@ -110,7 +110,7 @@ export default {
       isSubmitting: false,
       room: {
         name: '',
-        roomType: '',
+        roomType: '스위트룸',
         price: null,
         size: null,
         roomCount: 1,
