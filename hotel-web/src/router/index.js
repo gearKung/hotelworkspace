@@ -48,10 +48,11 @@ import HotelManagement from '@/components/admin/HotelManagement.vue'
 
 // ==== Owner =====
 import OwnerDashboard from "@/components/owner/OwnerDashboard.vue"
-import OwnerHotel from "@/components/owner/OwnerHotel.vue"
+import OwnerRoom from "@/components/owner/OwnerRoom.vue"
 import OwnerReservation from "@/components/owner/OwnerReservation.vue"
 import OwnerReview from "@/components/owner/OwnerReview.vue"
 import HotelOwner from "@/components/owner/OwnerMain.vue"
+import OwnerRoomRegister from "@/components/owner/OwnerRoomRegister.vue"
 
 const routes = [
   { path: "/", name: "Home", component: MainPage },
@@ -95,13 +96,14 @@ const routes = [
 
 
   { // 업주 페이지 
-    path: "/hotelOwner", 
+    path: "/owner", 
     component: HotelOwner, 
     meta: { requiresAuth: true },
     children: [ 
       { path: '', redirect: '/owner/dashboard' },
       { path: 'dashboard',    name: 'OwnerDashboard',   component: OwnerDashboard },
-      { path: 'hotels',       name: 'OwnerHotel',       component: OwnerHotel },
+      { path: 'rooms',       name: 'OwnerRoom',       component: OwnerRoom },
+      { path: 'roomRegister', name: 'OwnerRoomRegister', component: OwnerRoomRegister},
       { path: 'reservations', name: 'OwnerReservation', component: OwnerReservation },
       { path: 'reviews',      name: 'OwnerReview',      component: OwnerReview },
     ] 
