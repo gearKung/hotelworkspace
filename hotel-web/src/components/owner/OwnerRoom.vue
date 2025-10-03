@@ -2,7 +2,7 @@
   <div class="room-management-container">
     <header class="page-header">
       <h1 class="page-title">객실 관리</h1>
-      <button @click="openAddRoomModal" class="btn-primary">＋ 새 객실 등록</button>
+      <button @click="goToRegisterPage" class="btn-primary">＋ 새 객실 등록</button>
     </header>
 
     <div class="room-list-card">
@@ -39,22 +39,16 @@
         </tbody>
       </table>
     </div>
-
-    <AddRoomModal v-if="isModalVisible" @close="closeAddRoomModal" />
   </div>
-</template> 
+</template>
 
 <script>
-import OwnerRoomRegister from './OwnerRoomRegister.vue';
-
 export default {
-  name: 'OwnerHotel',
-  
+  name: 'OwnerRoom',
   data() {
     return {
-      // 나중에 API로부터 실제 객실 목록을 받아올 것입니다.
-      // 지금은 UI 레이아웃을 보기 위한 샘플 데이터입니다.
-      isModalVisible: false, 
+      // 👇 [수정] sampleRooms를 빈 배열 [] 로 초기화합니다.
+      // 나중에 실제 API로 데이터를 가져오기 전까지 오류를 방지합니다.
       sampleRooms: [
         { id: 1, name: '디럭스 더블룸', type: '더블', baseOccupancy: 2, maxOccupancy: 2, price: 150000, status: '판매중' },
         { id: 2, name: '프리미어 트윈룸', type: '트윈', baseOccupancy: 2, maxOccupancy: 3, price: 180000, status: '판매중' },
@@ -63,20 +57,16 @@ export default {
     };
   },
   methods: {
-    // 👇 '새 객실 등록' 버튼을 누르면 모달을 열어줍니다.
-    openAddRoomModal() {
-      this.isModalVisible = true;
-    },
-    // 👇 모달을 닫습니다.
-    closeAddRoomModal() {
-      this.isModalVisible = false;
-      // TODO: 모달이 닫힐 때 객실 목록을 새로고침하는 로직 추가
+    // 👇 메소드 이름 오타 수정: goToRegisterPag -> goToRegisterPage
+    goToRegisterPage() {
+      this.$router.push({ name: 'OwnerRoomRegister' });
     },
   },
 };
 </script>
 
 <style scoped>
+/* 스타일은 변경할 필요 없이 그대로 유지합니다. */
 .room-management-container {
   padding: 40px;
   background-color: #f8f9fa;

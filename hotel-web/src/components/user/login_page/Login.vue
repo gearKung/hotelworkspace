@@ -144,15 +144,15 @@ export default {
     },
     naverLogin() {
       // 네이버 OAuth2 로그인 URL로 리다이렉트
-  window.location.href = "/oauth2/authorization/naver";
+      window.location.href = "/oauth2/authorization/naver";
     },
     googleLogin() {
       // 구글 OAuth2 로그인 URL로 리다이렉트
-  window.location.href = "/oauth2/authorization/google";
+      window.location.href = "/oauth2/authorization/google";
     },
     kakaoLogin() {
       // 카카오 OAuth2 로그인 URL로 리다이렉트
-  window.location.href = "/oauth2/authorization/kakao";
+      window.location.href = "/oauth2/authorization/kakao";
     },
   },
 };

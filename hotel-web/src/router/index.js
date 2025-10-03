@@ -47,12 +47,12 @@ import SalesManagement from '@/components/admin/SalesManagement.vue'
 import HotelManagement from '@/components/admin/HotelManagement.vue'
 
 // ==== Owner =====
-import OwnerDashboard from "@/components/owner/OwnerDashboard.vue"
-import OwnerRoom from "@/components/owner/OwnerRoom.vue"
-import OwnerReservation from "@/components/owner/OwnerReservation.vue"
-import OwnerReview from "@/components/owner/OwnerReview.vue"
-import HotelOwner from "@/components/owner/OwnerMain.vue"
-import OwnerRoomRegister from "@/components/owner/OwnerRoomRegister.vue"
+import OwnerMain from "@/components/owner/OwnerMain.vue";
+import OwnerDashboard from "@/components/owner/OwnerDashboard.vue";
+import OwnerRoom from "@/components/owner/OwnerRoom.vue";
+import OwnerRoomRegister from "@/components/owner/OwnerRoomRegister.vue";
+import OwnerReservation from "@/components/owner/OwnerReservation.vue";
+import OwnerReview from "@/components/owner/OwnerReview.vue";
 
 const routes = [
   { path: "/", name: "Home", component: MainPage },
@@ -96,17 +96,17 @@ const routes = [
 
 
   { // 업주 페이지 
-    path: "/owner", 
-    component: HotelOwner, 
-    meta: { requiresAuth: true },
-    children: [ 
-      { path: '', redirect: '/owner/dashboard' },
-      { path: 'dashboard',    name: 'OwnerDashboard',   component: OwnerDashboard },
-      { path: 'rooms',       name: 'OwnerRoom',       component: OwnerRoom },
-      { path: 'roomRegister', name: 'OwnerRoomRegister', component: OwnerRoomRegister},
-      { path: 'reservations', name: 'OwnerReservation', component: OwnerReservation },
-      { path: 'reviews',      name: 'OwnerReview',      component: OwnerReview },
-    ] 
+    path: "/owner",
+    component: OwnerMain,
+    children: [
+      // /owner 접속 시 자동으로 /owner/dashboard 로 이동시킵니다.
+      { path: '', redirect: { name: 'OwnerDashboard' } },
+      { path: 'dashboard',    name: 'OwnerDashboard',    component: OwnerDashboard },
+      { path: 'rooms',        name: 'OwnerRoom',         component: OwnerRoom },
+      { path: 'roomRegister', name: 'OwnerRoomRegister', component: OwnerRoomRegister },
+      { path: 'reservations', name: 'OwnerReservation',  component: OwnerReservation },
+      { path: 'reviews',      name: 'OwnerReview',       component: OwnerReview },
+    ]
   }, 
 
   // Admin

@@ -1,13 +1,13 @@
 <template>
   <div class="owner-page">
     <aside class="sidebar">
-      <div class="logo">🏨 Owner Page</div>
+      <div class="logo">🏨 호텔 관리자</div>
       <nav>
         <ul>
-          <li :class="{ active: activeMenu === 'OwnerDashboard' }" @click="navigateTo('OwnerDashboard')">대시보드</li>
-          <li :class="{ active: activeMenu === 'OwnerRooms' }" @click="navigateTo('OwnerRoom')">객실 관리</li>
-          <li :class="{ active: activeMenu === 'OwnerReservations' }" @click="navigateTo('OwnerReservation')">예약 관리</li>
-          <li :class="{ active: activeMenu === 'OwnerReviews' }" @click="navigateTo('OwnerReview')">리뷰 관리</li>
+          <li :class="{ active: isActiveMenu('OwnerDashboard') }" @click="navigateTo('OwnerDashboard')">대시보드</li>
+          <li :class="{ active: isActiveMenu('OwnerRoom', 'OwnerRoomRegister') }" @click="navigateTo('OwnerRoom')">객실 관리</li>
+          <li :class="{ active: isActiveMenu('OwnerReservation') }" @click="navigateTo('OwnerReservation')">예약 관리</li>
+          <li :class="{ active: isActiveMenu('OwnerReview') }" @click="navigateTo('OwnerReview')">리뷰 관리</li>
         </ul>
       </nav>
       <div class="sidebar-footer">
@@ -34,12 +34,11 @@ export default {
       return this.$route.name;
     }
   },
-  methods: {
+   methods: {
     checkLoginStatus() {
       const userInfo = localStorage.getItem('user');
       if (userInfo) {
         this.user = JSON.parse(userInfo);
-        // 호텔 소유주가 아닐 경우 리디렉션
         if (this.user.role !== 'BUSINESS') {
           alert('접근 권한이 없습니다.');
           this.$router.push('/');
@@ -48,16 +47,21 @@ export default {
         this.$router.push("/login");
       }
     },
+    // 👇 URL 경로 대신 '이름'으로 라우트를 찾는 방식으로 변경 (더 안정적)
     navigateTo(routeName) {
       if (this.$route.name !== routeName) {
         this.$router.push({ name: routeName });
       }
     },
+    // 👇 현재 메뉴가 활성화 상태인지 확인하는 함수 (객실 등록 페이지에서도 '객실 관리' 메뉴가 활성화되도록)
+    isActiveMenu(...routeNames) {
+      return routeNames.includes(this.$route.name);
+    },
     logoutAndGoHome() {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        alert("로그아웃 되었습니다.");
-        this.$router.push('/');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      alert("로그아웃 되었습니다.");
+      this.$router.push('/');
     },
   },
   mounted() {
