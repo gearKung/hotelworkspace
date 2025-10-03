@@ -35,6 +35,12 @@ public class OwnerRoomDto {
         }
     }
 
+    @Getter
+    @Setter
+    public static class UpdateRequest extends RegisterRequest {
+        // RegisterRequest의 모든 필드를 상속받아 그대로 사용합니다.
+    }
+
     // 객실 목록 조회를 위한 응답 DTO
     @Getter
     @Builder
@@ -42,10 +48,9 @@ public class OwnerRoomDto {
         private Long id;
         private String name;
         private String roomType;
-        private String price; // 포맷팅된 가격 (예: "150,000원")
-        private String capacity; // 예: "2 / 4" 
+        private String price;
+        private String capacity;
 
-        // Entity를 DTO로 변환하는 정적 메소드
         public static ListResponse fromEntity(Room room) {
             return ListResponse.builder()
                     .id(room.getId())
@@ -56,4 +61,6 @@ public class OwnerRoomDto {
                     .build();
         }
     }
+
+   
 }

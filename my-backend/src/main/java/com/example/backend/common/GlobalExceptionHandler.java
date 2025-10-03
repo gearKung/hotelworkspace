@@ -9,10 +9,13 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.example.backend.admin.dto.ApiResponse;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 @Slf4j
@@ -81,5 +84,26 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleOthers(Exception ex) {
         log.error("Unexpected error", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.fail("Internal server error"));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public final ResponseEntity<Object> handleAllExceptions(Exception ex, WebRequest request) {
+        
+        // --- ⚙️ 가장 중요한 디버깅 콘솔 출력 부분 ---
+        System.out.println("=================================================");
+        System.out.println("🚨 서버 내부 오류 발생 (500 Internal Server Error) 🚨");
+        System.out.println("요청 URI: " + request.getDescription(false));
+        System.out.println("오류 메시지: " + ex.getMessage());
+        System.out.println("--- 전체 스택 트레이스 (Stack Trace) ---");
+        ex.printStackTrace(); // 👈 이 부분이 오류의 상세 내용을 모두 출력합니다.
+        System.out.println("=================================================");
+        // --- 여기까지 ---
+
+        // 프론트엔드에게 보낼 오류 응답
+        Map<String, String> errorDetails = new HashMap<>();
+        errorDetails.put("error", "서버 내부 오류가 발생했습니다.");
+        errorDetails.put("message", ex.getMessage());
+        
+        return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
