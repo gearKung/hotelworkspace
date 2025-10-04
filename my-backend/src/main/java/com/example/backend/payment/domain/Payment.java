@@ -68,7 +68,7 @@ public class Payment {
     @Column(name = "discount", nullable = false)
     private Integer discount;
 
-    /** 총 결제금액 */
+    /** 총 결제금액 */  
     @Column(name = "total_price", nullable = false)
     private Integer totalPrice;
 

@@ -56,4 +56,14 @@ public class Reservation {
         if (status == null)   status = Status.PENDING;
     }
     
+    public enum ResStatus {
+        RESERVED, // 예약 완료
+        CHECKED_IN, // 체크인
+        CHECKED_OUT, // 체크아웃
+        NO_SHOW // 노쇼
+    }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "res_status") // 기본값은 null 또는 'RESERVED'
+    private ResStatus resStatus;
 }

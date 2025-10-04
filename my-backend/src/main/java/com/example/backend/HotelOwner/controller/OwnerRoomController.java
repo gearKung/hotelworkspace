@@ -67,7 +67,7 @@ public class OwnerRoomController {
     public ResponseEntity<Void> updateRoom(
             @RequestHeader("Authorization") String authorizationHeader,
             @PathVariable Long roomId,
-            @RequestPart("roomRequest") OwnerRoomDto.UpdateRequest request,
+            @RequestPart("roomRequest") UpdateRequest request,
             @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages) throws AccessDeniedException {
 
         String token = authorizationHeader.substring(7);
