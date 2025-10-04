@@ -42,7 +42,7 @@ public class OwnerRoomDto {
     @Getter
     @Setter
     public static class UpdateRequest extends RegisterRequest {
-        // RegisterRequest의 모든 필드를 상속받아 그대로 사용합니다.
+        private List<String> deletedImages;
     }
 
     // 객실 목록 조회를 위한 응답 DTO

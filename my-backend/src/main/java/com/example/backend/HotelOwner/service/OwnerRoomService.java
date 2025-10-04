@@ -37,9 +37,9 @@ public class OwnerRoomService {
         Room room = Room.builder()
                 .hotel(hotel)
                 .name(request.getName())
-                .roomType(Room.RoomType.valueOf(request.getRoomType())) // String to Enum
+                .roomType(Room.RoomType.valueOf(request.getRoomType()))
                 .price(request.getPrice())
-                .roomSize(request.getSize() != null ? request.getSize() + "m²" : null) // 숫자 + 단위
+                .roomSize(request.getSize() != null ? request.getSize() + "m²" : null)
                 .roomCount(request.getRoomCount())
                 .capacityMin(request.getCapacityMin())
                 .capacityMax(request.getCapacityMax())
@@ -61,8 +61,8 @@ public class OwnerRoomService {
                 RoomImage roomImage = RoomImage.builder()
                         .room(savedRoom)
                         .url(imageUrl)
-                        .sortNo(i) // 프론트 순서 반영
-                        .isCover(i == 0) // 첫 이미지를 커버로 지정
+                        .sortNo(i)
+                        .isCover(i == 0)
                         .build();
                 roomImageRepository.save(roomImage);
             });
@@ -71,7 +71,7 @@ public class OwnerRoomService {
         return savedRoom.getId();
     }
 
-    // 특정 호텔의 객실 목록 조회
+    @Transactional(readOnly = true)
     public List<OwnerRoomDto.ListResponse> getRoomsForOwner(Long ownerId) {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new IllegalArgumentException("소유주 정보를 찾을 수 없습니다. ID: " + ownerId));
@@ -98,17 +98,16 @@ public class OwnerRoomService {
         return OwnerRoomDto.DetailResponse.fromEntity(room);
     }
 
-    //  객실 수정 로직
-    public void updateRoom(Long ownerId, Long roomId, UpdateRequest request) throws AccessDeniedException {
+    @Transactional
+    public void updateRoom(Long ownerId, Long roomId, UpdateRequest request, List<MultipartFile> newImages) throws AccessDeniedException {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 객실을 찾을 수 없습니다. ID: " + roomId));
         
-        // 소유권 검증: 이 객실이 현재 로그인한 업주의 호텔에 속해 있는지 확인
         if (!room.getHotel().getOwner().getId().equals(ownerId)) {
             throw new AccessDeniedException("이 객실을 수정할 권한이 없습니다.");
         }
 
-        // DTO의 데이터로 Room 엔티티의 필드를 업데이트
+        // 1. 텍스트 정보 업데이트
         room.setName(request.getName());
         room.setRoomType(Room.RoomType.valueOf(request.getRoomType()));
         room.setPrice(request.getPrice());
@@ -125,13 +124,66 @@ public class OwnerRoomService {
         room.setFreeWater(request.getFacilities().isFreeWater());
         room.setHasWindow(request.getFacilities().isHasWindow());
 
-        // 이미지는 별도의 API로 처리하거나, 여기서 기존 이미지를 삭제하고 새로 추가하는 로직을 구현할 수 있습니다.
-        // 여기서는 텍스트 정보만 수정하는 것으로 가정합니다.
+        // 2. 삭제 요청된 이미지 처리
+        if (request.getDeletedImages() != null && !request.getDeletedImages().isEmpty()) {
+            List<RoomImage> imagesToDelete = room.getImages().stream()
+                .filter(img -> request.getDeletedImages().contains(img.getUrl()))
+                .collect(Collectors.toList());
+            
+            // DB에서 이미지 정보 삭제
+            room.getImages().removeAll(imagesToDelete);
+            roomImageRepository.deleteAll(imagesToDelete);
 
+            // TODO: 실제 서버에서 파일 삭제 로직 추가 (필요 시)
+            // imagesToDelete.forEach(img -> fileStorageService.deleteFile(img.getUrl()));
+        }
+
+        // 3. 새로 추가된 이미지 저장
+        if (newImages != null && !newImages.isEmpty()) {
+            int maxSortNo = room.getImages().isEmpty() ? -1 : 
+                           room.getImages().stream()
+                                .mapToInt(RoomImage::getSortNo)
+                                .max()
+                                .orElse(-1);
+
+            // 현재 커버 이미지가 있는지 확인
+            boolean hasCover = room.getImages().stream()
+                                   .anyMatch(RoomImage::isCover);
+
+            for (int i = 0; i < newImages.size(); i++) {
+                MultipartFile imageFile = newImages.get(i);
+                String imageUrl = fileStorageService.storeFile(imageFile);
+
+                RoomImage roomImage = RoomImage.builder()
+                        .room(room)
+                        .url(imageUrl)
+                        .sortNo(maxSortNo + 1 + i)
+                        .isCover(!hasCover && i == 0) // 커버가 없으면 첫 번째 새 이미지를 커버로
+                        .build();
+                
+                roomImageRepository.save(roomImage);
+                room.getImages().add(roomImage);
+            }
+        }
+        
+        // 4. 커버 이미지 재설정 (모든 이미지가 삭제된 경우)
+        if (!room.getImages().isEmpty()) {
+            boolean hasCover = room.getImages().stream()
+                                   .anyMatch(RoomImage::isCover);
+            if (!hasCover) {
+                RoomImage firstImage = room.getImages().stream()
+                    .min((a, b) -> Integer.compare(a.getSortNo(), b.getSortNo()))
+                    .orElse(null);
+                if (firstImage != null) {
+                    firstImage.setCover(true);
+                }
+            }
+        }
+        
         roomRepository.save(room);
     }
 
-    // 객실 삭제 로직
+    @Transactional
     public void deleteRoom(Long ownerId, Long roomId) throws AccessDeniedException {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 객실을 찾을 수 없습니다. ID: " + roomId));
@@ -142,6 +194,7 @@ public class OwnerRoomService {
         }
 
         // TODO: 이미지 파일 시스템에서 실제 파일 삭제 로직 (필요 시 구현)
+        // room.getImages().forEach(img -> fileStorageService.deleteFile(img.getUrl()));
         
         roomRepository.delete(room);
     }
