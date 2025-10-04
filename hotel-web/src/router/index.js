@@ -104,6 +104,7 @@ const routes = [
       { path: 'dashboard',    name: 'OwnerDashboard',    component: OwnerDashboard },
       { path: 'rooms',        name: 'OwnerRoom',         component: OwnerRoom },
       { path: 'roomRegister', name: 'OwnerRoomRegister', component: OwnerRoomRegister },
+      { path: 'rooms/edit/:id', name: 'OwnerRoomUpdate', component: OwnerRoomRegister, props: true },
       { path: 'reservations', name: 'OwnerReservation',  component: OwnerReservation },
       { path: 'reviews',      name: 'OwnerReview',       component: OwnerReview },
     ]

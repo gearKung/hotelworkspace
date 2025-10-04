@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @RestController
@@ -15,7 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OwnerRoomController {
 
-    private final OwnerRoomService ownerRoomService;
+    private final OwnerRoomService roomService;
     private final JwtUtil jwtUtil;
 
     // 객실 등록 API
@@ -28,7 +29,7 @@ public class OwnerRoomController {
         String token = authorizationHeader.substring(7);
         Long ownerId = jwtUtil.extractUserId(token);
 
-        Long roomId = ownerRoomService.registerRoom(ownerId, request, images);
+        Long roomId = roomService.registerRoom(ownerId, request, images);
         
         return ResponseEntity.ok(roomId);
     }
@@ -41,8 +42,20 @@ public class OwnerRoomController {
         String token = authorizationHeader.substring(7);
         Long ownerId = jwtUtil.extractUserId(token);
         
-        List<OwnerRoomDto.ListResponse> rooms = ownerRoomService.getRoomsForOwner(ownerId);
+        List<OwnerRoomDto.ListResponse> rooms = roomService.getRoomsForOwner(ownerId);
         
         return ResponseEntity.ok(rooms);
+    }
+
+    @GetMapping("/{roomId}")
+    public ResponseEntity<OwnerRoomDto.DetailResponse> getRoomDetails(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @PathVariable Long roomId) throws AccessDeniedException {
+        
+        String token = authorizationHeader.substring(7);
+        Long ownerId = jwtUtil.extractUserId(token);
+        
+        OwnerRoomDto.DetailResponse roomDetails = roomService.getRoomDetails(ownerId, roomId);
+        return ResponseEntity.ok(roomDetails);
     }
 }

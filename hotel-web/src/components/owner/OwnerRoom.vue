@@ -4,16 +4,14 @@
       <h1 class="page-title">객실 관리</h1>
       <button @click="goToRegisterPage" class="btn-primary">＋ 새 객실 등록</button>
     </header>
-
     <div class="room-list-card">
       <table class="room-table">
         <thead>
           <tr>
             <th>객실명</th>
             <th>객실 타입</th>
-            <th>기본 / 최대 인원</th>
+            <th>보유 객실</th> <th>기본/최대 인원</th>
             <th>판매가 (1박)</th>
-            <th>상태</th>
             <th>관리</th>
           </tr>
         </thead>
@@ -21,24 +19,22 @@
           <tr v-for="room in rooms" :key="room.id">
             <td>{{ room.name }}</td>
             <td>{{ room.roomType }}</td>
-            <td>{{ room.capacity }}</td>
+            <td>{{ room.roomCount }}개</td> <td>{{ room.capacity }}</td>
             <td>{{ room.price }}</td>
             <td>
-                <span class="status-badge status-active">판매중</span>
-            </td>
-            <td>
-              <button class="btn-secondary btn-sm">수정</button>
-              <button class="btn-danger btn-sm">삭제</button>
+              <button @click="goToUpdatePage(room.id)" class="btn-secondary btn-sm">수정</button>
+              <button @click="deleteRoom(room.id)" class="btn-danger btn-sm">삭제</button>
             </td>
           </tr>
-          <tr v-if="rooms.length === 0">
-            <td colspan="6" class="no-data">등록된 객실이 없습니다. '새 객실 등록' 버튼을 눌러 추가해주세요.</td>
+          <tr v-if="!rooms.length">
+            <td colspan="6" class="no-data">등록된 객실이 없습니다.</td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
 </template>
+
 
 <script>
 export default {
@@ -51,6 +47,24 @@ export default {
   methods: {
     goToRegisterPage() {
       this.$router.push({ name: 'OwnerRoomRegister' });
+    },
+    goToUpdatePage(roomId) {
+      this.$router.push({ name: 'OwnerRoomUpdate', params: { id: roomId } });
+    },
+    async deleteRoom(roomId) {
+      if (!confirm("정말로 이 객실을 삭제하시겠습니까?")) return;
+      try {
+        const token = localStorage.getItem('token');
+        // API 경로에 roomId가 포함되어야 합니다.
+        await this.$axios.delete(`/api/owner/rooms/${roomId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        alert("객실이 삭제되었습니다.");
+        this.fetchRooms(); // 목록 새로고침
+      } catch (error) {
+        console.error("객실 삭제 실패:", error);
+        alert("객실 삭제에 실패했습니다.");
+      }
     },
     async fetchRooms() {
       try {

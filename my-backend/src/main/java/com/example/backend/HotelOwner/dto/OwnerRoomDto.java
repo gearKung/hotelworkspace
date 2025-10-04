@@ -4,8 +4,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import com.example.backend.HotelOwner.domain.Room;
+import com.example.backend.HotelOwner.domain.RoomImage;
+import com.example.backend.HotelOwner.dto.OwnerRoomDto.RegisterRequest.Facilities;
 
 public class OwnerRoomDto {
 
@@ -50,6 +54,7 @@ public class OwnerRoomDto {
         private String roomType;
         private String price;
         private String capacity;
+        private Integer roomCount;
 
         public static ListResponse fromEntity(Room room) {
             return ListResponse.builder()
@@ -58,9 +63,52 @@ public class OwnerRoomDto {
                     .roomType(room.getRoomType() != null ? room.getRoomType().name() : "타입 없음")
                     .price(String.format("%,d원", room.getPrice()))
                     .capacity(room.getCapacityMin() + " / " + room.getCapacityMax())
+                    .roomCount(room.getRoomCount())
                     .build();
         }
     }
 
-   
+    @Getter
+    @Builder
+    public static class DetailResponse {
+        private String name;
+        private String roomType;
+        private Integer price;
+        private Integer size;
+        private Integer roomCount;
+        private Integer capacityMin;
+        private Integer capacityMax;
+        private LocalTime checkInTime;
+        private LocalTime checkOutTime;
+        private Facilities facilities;
+        private List<String> imageUrls;
+
+        public static DetailResponse fromEntity(Room room) {
+            Facilities facilitiesDto = new RegisterRequest.Facilities();
+            facilitiesDto.setSmoke(room.getSmoke());
+            facilitiesDto.setBath(room.getBath());
+            facilitiesDto.setAircon(room.getAircon());
+            facilitiesDto.setWifi(room.getWifi());
+            facilitiesDto.setFreeWater(room.getFreeWater());
+            facilitiesDto.setHasWindow(room.getHasWindow());
+
+            List<String> images = room.getImages().stream()
+                .map(RoomImage::getUrl)
+                .collect(Collectors.toList());
+
+            return DetailResponse.builder()
+                    .name(room.getName())
+                    .roomType(room.getRoomType().name())
+                    .price(room.getPrice())
+                    .size(room.getRoomSize() != null ? Integer.parseInt(room.getRoomSize().replaceAll("[^0-9]", "")) : null)
+                    .roomCount(room.getRoomCount())
+                    .capacityMin(room.getCapacityMin())
+                    .capacityMax(room.getCapacityMax())
+                    .checkInTime(room.getCheckInTime())
+                    .checkOutTime(room.getCheckOutTime())
+                    .facilities(facilitiesDto)
+                    .imageUrls(images)
+                    .build();
+        }
+    }
 }

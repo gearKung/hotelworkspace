@@ -86,7 +86,19 @@ public class OwnerRoomService {
                 .collect(Collectors.toList());
     }
 
-    // 👇 [추가] 객실 수정 로직
+    @Transactional(readOnly = true)
+    public OwnerRoomDto.DetailResponse getRoomDetails(Long ownerId, Long roomId) throws AccessDeniedException {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("객실을 찾을 수 없습니다. ID: " + roomId));
+        
+        if (!room.getHotel().getOwner().getId().equals(ownerId)) {
+            throw new AccessDeniedException("이 객실을 조회할 권한이 없습니다.");
+        }
+        
+        return OwnerRoomDto.DetailResponse.fromEntity(room);
+    }
+
+    //  객실 수정 로직
     public void updateRoom(Long ownerId, Long roomId, UpdateRequest request) throws AccessDeniedException {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 객실을 찾을 수 없습니다. ID: " + roomId));
@@ -119,7 +131,7 @@ public class OwnerRoomService {
         roomRepository.save(room);
     }
 
-    // 👇 [추가] 객실 삭제 로직
+    // 객실 삭제 로직
     public void deleteRoom(Long ownerId, Long roomId) throws AccessDeniedException {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 객실을 찾을 수 없습니다. ID: " + roomId));

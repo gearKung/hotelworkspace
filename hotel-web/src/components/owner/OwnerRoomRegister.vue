@@ -3,9 +3,9 @@
     <header class="page-header">
       <div>
         <button @click="goBack" class="btn-back">←</button>
-        <h1 class="page-title">새 객실 등록</h1>
+        <h1 class="page-title">{{ isEditMode ? '객실 수정' : '새 객실 등록' }}</h1>
       </div>
-      </header>
+    </header>
 
     <main class="form-container">
       <form @submit.prevent="handleSubmit">
@@ -80,7 +80,7 @@
             <div class="image-preview-list">
               <div v-for="(image, index) in images" :key="image.id" class="image-preview-item" draggable="true"
                    @dragstart="onDragStart(index)" @dragover.prevent @drop="onDrop(index)" @dragend="dragEnd">
-                <img :src="image.preview" :alt="image.file.name">
+                <img :src="image.preview" :alt="image.file ? image.file.name : '기존 이미지'">
                 <button type="button" class="remove-image-btn" @click="removeImage(index)">&times;</button>
                 <span class="image-order-badge">{{ index + 1 }}</span>
               </div>
@@ -92,11 +92,15 @@
           </div>
         </div>
         
-        <div class="form-footer">
-          <button type="submit" class="btn-primary" :disabled="isSubmitting">
-            {{ isSubmitting ? '저장 중...' : '저장하기' }}
-          </button>
-        </div>
+        <main class="form-container">
+          <form @submit.prevent="handleSubmit">
+            <div class="form-footer">
+              <button type="submit" class="btn-primary" :disabled="isSubmitting">
+                {{ isSubmitting ? '저장 중...' : (isEditMode ? '수정하기' : '저장하기') }}
+              </button>
+            </div>
+          </form>
+        </main>
       </form>
     </main>
   </div>
@@ -105,8 +109,10 @@
 <script>
 export default {
   name: 'OwnerRoomRegister',
+  props: ['id'],
   data() {
     return {
+      isEditMode: false,
       isSubmitting: false,
       room: {
         name: '',
@@ -174,55 +180,94 @@ export default {
     dragEnd() {
       this.dragIndex = null;
     },
+    async fetchRoomData() {
+      try {
+        const token = localStorage.getItem('token');
+        const { data } = await this.$axios.get(`/api/owner/rooms/${this.id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        this.room = data;
+        
+        // 불러온 이미지 URL을 images 배열에 미리보기 형식으로 추가
+        if (data.imageUrls) {
+          this.images = data.imageUrls.map(url => ({
+            id: url, // 고유값으로 URL 사용
+            preview: url, // 미리보기 경로
+            file: null // 기존 파일이므로 file 객체는 null
+          }));
+        }
+      } catch (error) {
+        console.error("객실 정보 로딩 실패:", error);
+        alert("객실 정보를 불러오는 데 실패했습니다.");
+        this.goBack();
+      }
+    },
     async handleSubmit() {
       if (this.isSubmitting) return;
       this.isSubmitting = true;
 
-      const formData = new FormData();
-      
-      const roomRequestData = {
-        ...this.room,
-        facilities: {
-          ...this.room.facilities,
-          bath: this.room.facilities.bath ? 1 : 0
-        }
-      };
-      formData.append('roomRequest', new Blob([JSON.stringify(roomRequestData)], { type: "application/json" }));
-      
-      this.images.forEach(imageObj => {
-        formData.append('images', imageObj.file);
-      });
+      const token = localStorage.getItem('token');
+      if (!token) {
+          alert("로그인이 필요합니다.");
+          this.isSubmitting = false;
+          return this.$router.push('/login');
+      }
 
       try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          alert("로그인이 필요합니다.");
-          this.$router.push('/login');
-          return;
+        if (this.isEditMode) {
+          // --- 수정 로직 ---
+          // 이미지 변경은 아직 지원하지 않으므로, 텍스트 정보만 JSON으로 전송합니다.
+          await this.$axios.put(`/api/owner/rooms/${this.id}`, this.room, {
+             headers: { 
+               'Authorization': `Bearer ${token}`,
+               'Content-Type': 'application/json' // PUT 요청은 JSON으로 보냅니다.
+             }
+          });
+          alert("객실 정보가 성공적으로 수정되었습니다.");
+        } else {
+          // --- 등록 로직 ---
+          const formData = new FormData();
+          const roomRequestData = {
+            ...this.room,
+            facilities: {
+              ...this.room.facilities,
+              bath: this.room.facilities.bath ? 1 : 0
+            }
+          };
+          formData.append('roomRequest', new Blob([JSON.stringify(roomRequestData)], { type: "application/json" }));
+          this.images.forEach(imageObj => {
+            if (imageObj.file) { // 새로 추가된 파일만 전송
+              formData.append('images', imageObj.file);
+            }
+          });
+
+          await this.$axios.post('/api/owner/rooms', formData, {
+             headers: { 'Authorization': `Bearer ${token}` }
+          });
+          alert("객실이 성공적으로 등록되었습니다.");
         }
-
-        await this.$axios.post('http://localhost:8888/api/owner/rooms', formData, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-            // 'Content-Type'은 axios가 FormData를 보낼 때 자동으로 설정하므로 명시하지 않습니다.
-          }
-        });
-        
-        alert(`'${this.room.name}' 객실이 성공적으로 등록되었습니다.`);
         this.goBack();
-
       } catch (error) {
-        console.error("객실 등록 실패:", error.response || error);
-        alert("객실 등록에 실패했습니다. 입력 내용을 확인하거나 다시 시도해주세요.");
+        console.error("저장 실패:", error.response || error);
+        // "객실 등록 실패"가 아니라 상황에 맞는 메시지 표시
+        const action = this.isEditMode ? "수정" : "등록";
+        alert(`객실 ${action}에 실패했습니다. 입력 내용을 확인해주세요.`);
       } finally {
         this.isSubmitting = false;
       }
-    }
+    },
   },
   // 컴포넌트가 사라질 때 메모리 누수 방지를 위해 미리보기 URL들을 해제합니다.
   beforeUnmount() {
     this.images.forEach(image => URL.revokeObjectURL(image.preview));
-  }
+  },
+  created() {
+    // 페이지가 생성될 때 id prop이 있으면 수정 모드로 설정
+    if (this.id) {
+      this.isEditMode = true;
+      this.fetchRoomData();
+    }
+  },
 };
 </script>
 
