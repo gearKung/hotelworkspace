@@ -201,7 +201,7 @@ export default {
           return;
         }
 
-        await this.$axios.post('/api/owner/rooms', formData, {
+        await this.$axios.post('http://localhost:8888/api/owner/rooms', formData, {
           headers: {
             'Authorization': `Bearer ${token}`
             // 'Content-Type'은 axios가 FormData를 보낼 때 자동으로 설정하므로 명시하지 않습니다.

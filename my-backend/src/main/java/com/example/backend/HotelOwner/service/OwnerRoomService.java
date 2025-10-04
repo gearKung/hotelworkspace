@@ -31,7 +31,7 @@ public class OwnerRoomService {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new IllegalArgumentException("소유주 정보를 찾을 수 없습니다."));
         
-        Hotel hotel = hotelRepository.findByUser(owner)
+        Hotel hotel = hotelRepository.findByOwner(owner)
                 .orElseThrow(() -> new IllegalArgumentException("소유주에게 할당된 호텔이 없습니다."));
 
         Room room = Room.builder()
@@ -76,7 +76,7 @@ public class OwnerRoomService {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new IllegalArgumentException("소유주 정보를 찾을 수 없습니다. ID: " + ownerId));
 
-        Hotel hotel = hotelRepository.findByUser(owner)
+        Hotel hotel = hotelRepository.findByOwner(owner)
                 .orElseThrow(() -> new IllegalArgumentException("소유주에게 할당된 호텔이 없습니다."));
         
         List<Room> rooms = roomRepository.findAllByHotel(hotel);
